@@ -3,22 +3,22 @@ import time
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+import pandas as pd
 
-url = 'http://local.adspower.net:50325/'
+base_url = 'http://local.adspower.net:50325/'
 
 
-def open_browser(browser_id='jd6u9gy'):
+def open_browser(browser_id):
     endpoint = 'api/v1/browser/start'
-
-    api_key = 'c2e4b7646046674561f4f975757cccc0'
 
     params = {
         'user_id': browser_id,
     }
 
     response = requests.get(
-        url + endpoint,
+        base_url + endpoint,
         params=params
     )
     if response.status_code == 200:
@@ -28,7 +28,7 @@ def open_browser(browser_id='jd6u9gy'):
         return False
 
 
-def close_browser(browser_id='jd6u9gy'):
+def close_browser(browser_id):
     endpoint = 'api/v1/browser/stop'
 
     params = {
@@ -36,7 +36,7 @@ def close_browser(browser_id='jd6u9gy'):
     }
 
     response = requests.get(
-        url + endpoint,
+        base_url + endpoint,
         params=params
     )
     if response.status_code == 200:
@@ -46,11 +46,17 @@ def close_browser(browser_id='jd6u9gy'):
         return False
 
 
-def create_request(driver, url):
-    driver.get(url)
+def make_action(driver):
+    print(driver.title)
+    driver.execute_script('window.scrollBy(0, 500);')
+    time.sleep(5)
+    driver.execute_script('window.scrollBy(0, 500);')
+    time.sleep(5)
+    driver.find_element(By.TAG_NAME, 'body')
+    time.sleep(5)
 
 
-def main(browser_id: str = None):
+def get_driver(browser_id: str) -> webdriver.Chrome:
     data = open_browser(browser_id)
 
     print(data)
@@ -65,12 +71,45 @@ def main(browser_id: str = None):
 
     driver = webdriver.Chrome(service=service, options=options)
 
-    driver.get('https://www.cian.ru/snyat-kvartiru-1-komn-ili-2-komn/')
+    return driver
 
-    time.sleep(10)
 
-    close_browser(browser_id)
+def read_fil(file_name: str = 'browser_data.xlsx'):
+    data = pd.read_excel(file_name)
+    browser_ids = data['browser_ids'].dropna().values
+    urls = data['links'].dropna().values
+
+    return browser_ids, urls
+
+
+def imit_action_on_sits():
+    browser_ids, urls = read_fil()
+
+    for browser_id in browser_ids:
+        driver = get_driver(browser_id)
+        for url in urls:
+            driver.get(url)
+            time.sleep(5)
+            make_action(driver)
+            driver.execute_script(f"window.open('', '_blank');")
+            driver.switch_to.window(driver.window_handles[-1])
+            time.sleep(5)
+        driver.close()
+        close_browser(browser_id)
+
+
+def main():
+    print(f'[0] Имитация работы с сайтами\n'
+          f'[1] Авто-покупка крипты')
+
+    event = input('Выберите действие: ')
+
+    if event == '0':
+        print('Имитация работы с сайтами')
+        imit_action_on_sits()
+    elif event == '1':
+        print('Авто-покупка крипты')
 
 
 if __name__ == '__main__':
-    main('jd6u9gy')
+    main()
