@@ -92,10 +92,21 @@ def imit_action_on_sits():
             time.sleep(5)
             make_action(driver)
             driver.execute_script(f"window.open('', '_blank');")
+            print(driver.title)
             driver.switch_to.window(driver.window_handles[-1])
             time.sleep(5)
+
+        win_met = filter(lambda win: win.title() == 'MetaMask Notification', driver.window_handles[-1])
+        win_met.title()
         driver.close()
         close_browser(browser_id)
+
+
+def bue_cript():
+    browser_ids, urls = read_fil()
+
+    for browser_id in browser_ids:
+        driver = get_driver(browser_id)
 
 
 def main():
@@ -109,6 +120,7 @@ def main():
         imit_action_on_sits()
     elif event == '1':
         print('Авто-покупка крипты')
+        bue_cript()
 
 
 if __name__ == '__main__':

@@ -39,7 +39,10 @@ def imit_action_on_sits():
 
 
 def by_cript():
-    pass
+    browser_ids, urls = read_fil()
+
+    for browser_id in browser_ids:
+        ads_power = AdsPower(browser_id)
 
 
 if __name__ == '__main__':
